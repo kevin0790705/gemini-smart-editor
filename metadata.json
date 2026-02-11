@@ -1,0 +1,5 @@
+{
+  "name": "Gemini Smart Editor",
+  "description": "A content generation tool that uses Google Gemini to analyze a reference URL's writing style and generate new content within a rich text editor.",
+  "requestFramePermissions": []
+}
