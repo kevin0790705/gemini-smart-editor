@@ -10,6 +10,7 @@ const INITIAL_CONTENT = '<h2>Welcome to Gemini Smart Editor</h2><p><strong>Step 
 const App: React.FC = () => {
   // State
   const [specificationText, setSpecificationText] = useState('');
+  const [exampleText, setExampleText] = useState('');
   const [userPrompt, setUserPrompt] = useState('');
   const [editorData, setEditorData] = useState(INITIAL_CONTENT);
   const [status, setStatus] = useState<AppStatus>(AppStatus.IDLE);
@@ -32,12 +33,12 @@ const App: React.FC = () => {
       if (!hasActiveContent) {
         // Mode: Generate Draft
         setStatus(AppStatus.GENERATING);
-        resultHtml = await generateDraft(specificationText, userPrompt);
+        resultHtml = await generateDraft(specificationText, userPrompt, exampleText);
         setHasActiveContent(true); // Switch to refinement mode after success
       } else {
         // Mode: Refine / Update
         setStatus(AppStatus.UPDATING);
-        resultHtml = await refineContent(specificationText, editorData, userPrompt);
+        resultHtml = await refineContent(specificationText, editorData, userPrompt, exampleText);
       }
 
       setEditorData(resultHtml);
@@ -48,7 +49,7 @@ const App: React.FC = () => {
       setStatus(AppStatus.ERROR);
       setErrorMessage(error.message || "An unexpected error occurred.");
     }
-  }, [specificationText, userPrompt, editorData, hasActiveContent]);
+  }, [specificationText, userPrompt, editorData, hasActiveContent, exampleText]);
 
   const handleAnalyze = useCallback(async () => {
     if (!specificationText.trim() || !editorData) return;
@@ -74,6 +75,7 @@ const App: React.FC = () => {
       setHasActiveContent(false);
       setStatus(AppStatus.IDLE);
       setUserPrompt('');
+      setExampleText('');
       setErrorMessage(null);
       setSuggestions(null);
     }
@@ -129,6 +131,8 @@ const App: React.FC = () => {
             <ControlPanel 
               specificationText={specificationText}
               setSpecificationText={setSpecificationText}
+              exampleText={exampleText}
+              setExampleText={setExampleText}
               userPrompt={userPrompt}
               setUserPrompt={setUserPrompt}
               onGenerate={handleAction}

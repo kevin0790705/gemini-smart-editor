@@ -1,9 +1,11 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { AppStatus } from '../types';
 
 interface ControlPanelProps {
   specificationText: string;
   setSpecificationText: (text: string) => void;
+  exampleText: string;
+  setExampleText: (text: string) => void;
   userPrompt: string;
   setUserPrompt: (prompt: string) => void;
   onGenerate: () => void;
@@ -18,6 +20,8 @@ interface ControlPanelProps {
 const ControlPanel: React.FC<ControlPanelProps> = ({
   specificationText,
   setSpecificationText,
+  exampleText,
+  setExampleText,
   userPrompt,
   setUserPrompt,
   onGenerate,
@@ -30,6 +34,10 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
 }) => {
   const isProcessing = status === AppStatus.GENERATING || status === AppStatus.UPDATING || status === AppStatus.ANALYZING;
   const isRefinementMode = hasContent;
+  const [showExample, setShowExample] = useState(false);
+
+  // Show reset button if there is any content to clear (inputs or generated content)
+  const canReset = hasContent || userPrompt.trim().length > 0 || exampleText.trim().length > 0 || specificationText.trim().length > 0;
 
   return (
     <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200 h-full flex flex-col gap-6 overflow-y-auto">
@@ -44,11 +52,11 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
               : 'Define rules and topic to start.'}
           </p>
         </div>
-        {isRefinementMode && (
+        {canReset && (
           <button 
             onClick={onReset}
             disabled={isProcessing}
-            title="Reset to New Draft"
+            title="Reset All"
             className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-full transition-colors"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -59,9 +67,9 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
       </div>
 
       {/* Specification Input (Knowledge Base) */}
-      <div className="space-y-2 flex-grow flex flex-col min-h-[150px]">
+      <div className="space-y-2 flex-grow flex flex-col min-h-[120px]">
         <label htmlFor="spec-input" className="block text-sm font-medium text-slate-700">
-          Specification / Guidelines (Knowledge Base)
+          Specification / Guidelines
         </label>
         <textarea
           id="spec-input"
@@ -71,9 +79,43 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
           onChange={(e) => setSpecificationText(e.target.value)}
           disabled={isProcessing}
         />
-        <p className="text-xs text-slate-500">
-          Gemini will use this as the "Source of Truth" for all content generation.
-        </p>
+      </div>
+
+      {/* Optional Example Toggle */}
+      <div className="border-t border-b border-slate-100 py-2">
+        <button 
+          onClick={() => setShowExample(!showExample)}
+          className="flex items-center text-sm font-medium text-indigo-600 hover:text-indigo-800 focus:outline-none w-full justify-between"
+        >
+          <span>
+            {showExample ? 'Hide Reference Example' : 'Add Reference Example (Optional)'}
+          </span>
+          <svg 
+            className={`w-4 h-4 transition-transform duration-200 ${showExample ? 'transform rotate-180' : ''}`} 
+            fill="none" 
+            stroke="currentColor" 
+            viewBox="0 0 24 24"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+          </svg>
+        </button>
+        
+        {/* Example Input - Keep visible if toggle is on OR if there is text inside */}
+        {(showExample || exampleText.length > 0) && (
+          <div className="mt-3 animate-fade-in-down">
+             <textarea
+              id="example-input"
+              className="w-full h-32 p-3 border border-slate-300 rounded-lg bg-slate-50 placeholder-slate-400 focus:outline-none focus:bg-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm transition duration-150 ease-in-out resize-none font-mono text-xs"
+              placeholder="Paste a previous article, template, or 'Gold Standard' content here. Gemini will use this to match structure and tone."
+              value={exampleText}
+              onChange={(e) => setExampleText(e.target.value)}
+              disabled={isProcessing}
+            />
+            <p className="text-xs text-slate-500 mt-1">
+              The AI will mimic the structure of this text but apply the new topic.
+            </p>
+          </div>
+        )}
       </div>
 
       {/* Prompt Input */}

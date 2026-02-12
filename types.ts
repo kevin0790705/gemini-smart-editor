@@ -1,7 +1,8 @@
 export interface GenerationRequest {
   specificationText: string;
   userPrompt: string;
-  currentContent?: string; // Optional: Only needed for refinement
+  exampleContent?: string; // New: Optional reference content
+  currentContent?: string;
 }
 
 export interface GenerationResponse {

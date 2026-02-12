@@ -23,17 +23,31 @@ You must strictly adhere to a provided "Specification Text".
 `;
 
 /**
- * Generates the initial draft based on spec and topic.
+ * Generates the initial draft based on spec, topic, and optional example.
  */
 export const generateDraft = async (
   specificationText: string,
-  topic: string
+  topic: string,
+  exampleText?: string
 ): Promise<string> => {
   if (!API_KEY) throw new Error("API Key missing.");
 
-  const prompt = `
+  let prompt = `
     **TASK**: Generate a new HTML document based on the "Topic" following the "Specification" guidelines.
+  `;
 
+  if (exampleText && exampleText.trim()) {
+    prompt += `
+    **Reference Example (Style & Structure Template):**
+    Use the following text as a concrete example of the desired tone, structure, and formatting. 
+    Mimic the style of this example, but replace the content with the new "Topic" information.
+    ---
+    ${exampleText}
+    ---
+    `;
+  }
+
+  prompt += `
     **Specification (Source of Truth):**
     ${specificationText}
 
@@ -64,14 +78,27 @@ export const generateDraft = async (
 export const refineContent = async (
   specificationText: string,
   currentContent: string,
-  instruction: string
+  instruction: string,
+  exampleText?: string
 ): Promise<string> => {
   if (!API_KEY) throw new Error("API Key missing.");
 
-  const prompt = `
+  let prompt = `
     **TASK**: Update the "Current Content" based on the "User Instruction". 
     Ensure the updated content STILL complies with the "Specification".
+  `;
 
+  if (exampleText && exampleText.trim()) {
+    prompt += `
+    **Reference Example:**
+    If the user instruction asks to match the style, refer to this text:
+    ---
+    ${exampleText}
+    ---
+    `;
+  }
+
+  prompt += `
     **Specification (Source of Truth):**
     ${specificationText}
 
